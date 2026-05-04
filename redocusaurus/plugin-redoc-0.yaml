@@ -1,0 +1,338 @@
+openapi: 3.0.3
+info:
+  title: Tourist Club API
+  version: 1.0.0
+  description: API для информационной системы туристического клуба НИУ ВШЭ
+servers:
+  - url: https://api.tourclub.local
+security:
+  - BearerAuth: []
+tags:
+  - name: trips
+    description: Методы для работы с походами
+  - name: applications
+    description: Методы для работы с заявками
+  - name: payments
+    description: Методы для работы со статусом оплаты
+paths:
+  /api/trips:
+    get:
+      tags:
+        - trips
+      summary: Получить список походов
+      parameters:
+        - name: region
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: difficulty
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5
+      responses:
+        '200':
+          description: Список походов успешно получен
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TripCard'
+        '500':
+          description: Внутренняя ошибка сервера
+    post:
+      tags:
+        - trips
+      summary: Создать новый поход
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTripRequest'
+      responses:
+        '201':
+          description: Поход успешно создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trip'
+        '400':
+          description: Некорректные данные
+        '401':
+          description: Ошибка авторизации
+  /api/trips/{tripId}:
+    get:
+      tags:
+        - trips
+      summary: Получить информацию о походе
+      parameters:
+        - name: tripId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Информация о походе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trip'
+        '404':
+          description: Поход не найден
+  /api/trips/{tripId}/applications:
+    get:
+      tags:
+        - applications
+      summary: Получить заявки на поход
+      parameters:
+        - name: tripId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/ApplicationStatus'
+      responses:
+        '200':
+          description: Список заявок
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Application'
+        '403':
+          description: Недостаточно прав
+        '404':
+          description: Поход не найден
+  /api/applications:
+    post:
+      tags:
+        - applications
+      summary: Подать заявку на поход
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateApplicationRequest'
+      responses:
+        '201':
+          description: Заявка успешно создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Application'
+        '400':
+          description: Некорректные данные
+        '409':
+          description: Заявка уже существует или набор закрыт
+  /api/applications/my:
+    get:
+      tags:
+        - applications
+      summary: Получить заявки текущего участника
+      responses:
+        '200':
+          description: Список заявок участника
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Application'
+        '401':
+          description: Ошибка авторизации
+  /api/applications/{applicationId}:
+    patch:
+      tags:
+        - applications
+      summary: Изменить статус заявки
+      parameters:
+        - name: applicationId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateApplicationStatusRequest'
+      responses:
+        '200':
+          description: Статус обновлён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Application'
+        '403':
+          description: Недостаточно прав
+        '409':
+          description: Заявка уже обработана
+  /api/applications/{applicationId}/payment:
+    patch:
+      tags:
+        - payments
+      summary: Изменить статус оплаты
+      parameters:
+        - name: applicationId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePaymentStatusRequest'
+      responses:
+        '200':
+          description: Статус оплаты обновлён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Application'
+        '403':
+          description: Недостаточно прав
+        '409':
+          description: Нельзя изменить оплату для неподтверждённой заявки
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    TripCard:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        region:
+          type: string
+        difficulty:
+          type: integer
+          minimum: 1
+          maximum: 5
+        free_places:
+          type: integer
+    Trip:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        region:
+          type: string
+        difficulty:
+          type: integer
+        description:
+          type: string
+        capacity:
+          type: integer
+        free_places:
+          type: integer
+    Application:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          $ref: '#/components/schemas/ApplicationStatus'
+        created_at:
+          type: string
+          format: date-time
+        comment:
+          type: string
+    CreateTripRequest:
+      type: object
+      required:
+        - title
+        - start_date
+        - end_date
+        - region
+        - difficulty
+        - capacity
+      properties:
+        title:
+          type: string
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        region:
+          type: string
+        difficulty:
+          type: integer
+          minimum: 1
+          maximum: 5
+        description:
+          type: string
+        capacity:
+          type: integer
+    CreateApplicationRequest:
+      type: object
+      required:
+        - trip_id
+      properties:
+        trip_id:
+          type: string
+        comment:
+          type: string
+    UpdateApplicationStatusRequest:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum:
+            - confirmed
+            - rejected
+            - cancelled
+    UpdatePaymentStatusRequest:
+      type: object
+      required:
+        - payment_status
+      properties:
+        payment_status:
+          type: string
+          enum:
+            - unpaid
+            - paid
+    ApplicationStatus:
+      type: string
+      enum:
+        - pending
+        - confirmed
+        - rejected
+        - cancelled
