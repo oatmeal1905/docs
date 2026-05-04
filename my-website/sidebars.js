@@ -19,6 +19,11 @@ const sidebars = {
       label: 'Модель данных',
       items: ['db/model'],
     },
+    {
+      type: 'category',
+      label: 'API',
+      items: ['api/api-reference'],
+    },
   ],
 };
 

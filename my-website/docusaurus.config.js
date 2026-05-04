@@ -10,13 +10,16 @@ import {themes as prismThemes} from 'prism-react-renderer';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'Техническая документация',
-  tagline: 'Docs as Code',
+  title: 'TourClub',
+  tagline: 'Техническая документация для информационной системы TourClub',
   favicon: 'img/favicon.ico',
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
   future: {
     v4: true, // Improve compatibility with the upcoming Docusaurus v4
+  },
+  markdown: {
+    format: 'detect',
   },
 
   // Set the production url of your site here
@@ -65,6 +68,7 @@ const config = {
     {
       specs: [
         {
+          id: 'tourclub',
           spec: 'static/api/openapi.yaml',
           route: '/api/',
         },
@@ -98,7 +102,7 @@ const config = {
             label: 'Документация',
           },
           {
-            to: '/api',
+            to: '/docs/docs/api/api-reference',
             label: 'API',
             position: 'left',
           },
