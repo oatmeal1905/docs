@@ -44,23 +44,36 @@ const config = {
   },
 
   presets: [
-    [
-      'classic',
-      /** @type {import('@docusaurus/preset-classic').Options} */
-      ({
-        docs: {
-          sidebarPath: './sidebars.js',
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
-          editUrl:
-            'https://github.com/oatmeal1905/docs/edit/main/',
+  [
+    'classic',
+    ({
+      docs: {
+        sidebarPath: './sidebars.js',
+        editUrl: 'https://github.com/oatmeal1905/docs/edit/main/',
+        remarkPlugins: [
+          [require('@akebifiky/remark-simple-plantuml'), { baseUrl: 'https://www.plantuml.com/plantuml/svg' }]
+        ],
+      },
+      blog: false,
+      theme: {
+        customCss: './src/css/custom.css',
+      },
+    }),
+  ],
+  [
+    'redocusaurus',
+    {
+      specs: [
+        {
+          spec: 'static/api/openapi.yaml',
+          route: '/api/',
         },
-        blog: false,
-        theme: {
-          customCss: './src/css/custom.css',
-        },
-      }),
-    ],
+      ],
+      theme: {
+        primaryColor: '#2e7d32',
+      },
+    },
+  ],
   ],
 
   themeConfig:
@@ -72,7 +85,7 @@ const config = {
         respectPrefersColorScheme: true,
       },
       navbar: {
-        title: 'Техническая документация',
+        title: 'TourClub',
         logo: {
           alt: 'My Site Logo',
           src: 'img/logo.svg',
@@ -82,7 +95,12 @@ const config = {
             type: 'docSidebar',
             sidebarId: 'tutorialSidebar',
             position: 'left',
-            label: 'Tutorial',
+            label: 'Документация',
+          },
+          {
+            to: '/api',
+            label: 'API',
+            position: 'left',
           },
           {
             href: 'https://github.com/oatmeal1905/docs',
